@@ -2,7 +2,7 @@
 #include <Adafruit_NeoPixel.h>
 
 #define PIN 6
-#define PIXELS 10
+#define PIXELS 10 // Set this to the number of pixels in yout strip
 #define SLAVE_ADDRESS 0x04
 
 // Parameter 1 = number of pixels in strip
@@ -226,7 +226,7 @@ void testCoid() {
   flashColor(0, 204, 0, 1100);
 }
 
-int flashColor(byte Red, byte Green, byte Blue, int n) {
+void flashColor(byte Red, byte Green, byte Blue, long n) {
 
   byte Rstart=0;
   byte Gstart=0;
@@ -271,6 +271,5 @@ int flashColor(byte Red, byte Green, byte Blue, int n) {
    }
    strip.show();
 
-   return 0x01;
 }
 
