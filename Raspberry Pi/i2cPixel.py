@@ -34,6 +34,9 @@ def setPixel(n, red, green, blue):
 
 def show():
     bus.write_byte(arduinoAddress, 0x03)
+    
+def blink(time, red, green, blue):
+    bus.write_block_data(arduinoAddress, 0x04, [red, green, blue, time])
 
 def waitForSensor():
 
@@ -41,10 +44,12 @@ def waitForSensor():
         try:
             sensorData = bus.read_byte(arduinoAddress)
             if sensorData == 0x02:
-                print "SENSOR 1"
+                print "Sensor 1 Triggered"
+                return 1
                 break;
             if sensorData == 0x03:
-                print "SENSOR 2"
+                print "Sensor 2 Triggered"
+                return 2
                 break;
         except Exception:
             pass
