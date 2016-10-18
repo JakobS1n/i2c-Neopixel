@@ -1,6 +1,7 @@
 """ Imports """
 import logging
 import smbus
+import sys
 import time
 import json
 import i2cPixel
@@ -28,13 +29,38 @@ def lightStaircase(direction):
 	
 	return true
 	
+def errorHandler(type, errorMsg):
+	if type = 1: # Debug
+		logging.debug(errorMsg)
+		print("Debug Message: See logfile")
+	else if type = 2: # info
+		logging.info(errorMsg)
+	else if type = 3: # Warning 
+		logging.warning(errorMsg)
+	else if type = 4: # Error
+		logging.error(errorMsg)
+		print("Error: See logfile")
+	else if type = 5: # Error
+		logging.critical(errorMsg)
+		print("Critical Error: See logfile")
+	else:
+		logging.critical(errorMsg)
+		print("Something went terribly wrong! Not even the errorhandler was able to find out what. Which basically means 'You are doomed'")	
+	
 def setup():
-
+	
+	""" Setup Log File """
+	logging.basicConfig(filename='error.log',level=logging.DEBUG)
+	
+	""" Print first line of log file """
+	logging.info('Starting App')
+	
     """ Setup i2c communication """
     i2cPixel.version()
     i2cPixel.setBus(1)
     i2cPixel.setAddress(0x04)
 
+	
 def main():
     
     """ Wait for heartbeat from Arduino """
