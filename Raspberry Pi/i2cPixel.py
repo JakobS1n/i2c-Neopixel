@@ -14,59 +14,79 @@ def setAddress(address):
     arduinoAddress = address
 
 def setBus(n):
-    global bus
-	try:
-		bus = smbus.SMBus(n)
-	except:
-		errorMsg = sys.exc_info()[0]
-		errorHandler(5, errorMsg)
+	if available = False:
+		return 2
+	else:
+		global bus
+		try:
+			bus = smbus.SMBus(n)
+		except:
+			errorMsg = sys.exc_info()[0]
+			errorHandler(5, errorMsg)
 
 def available():
 	global lockdown
 	return lockdown
 	
 def greeting():
-    """ Send heartbeat """
-    bus.write_byte(arduinoAddress, 0x01)
+	if available = False:
+		return 2
+	else:
+		try:
+		    """ Send heartbeat """
+			bus.write_byte(arduinoAddress, 0x01)
 
-    """ Wait for response """
-    try:	
-        response = bus.read_byte(arduinoAddress)
-        if response == 0x01:
-            returnMsg = True
-        else:
-            returnMsg = False
-    except:
-		errorMsg = sys.exc_info()[0]
-		errorHandler(5, errorMsg)
-        returnMsg = False
+			""" Wait for response """
+			try:	
+				response = bus.read_byte(arduinoAddress)
+				if response == 0x01:
+					returnMsg = True
+				else:
+					returnMsg = False
+			except:
+				errorMsg = sys.exc_info()[0]
+				errorHandler(5, errorMsg)
+				returnMsg = False
 		
-    """ Return if heartbeat was received """        
-    return returnMsg
+			""" Return if heartbeat was received """        
+			return returnMsg
+		
+		except:
+			errorMsg = sys.exc_info()[0]
+			errorHandler(5, errorMsg)
 
 def setPixel(n, red, green, blue):
     """ Send values for changing pixel values """
-	try:
-		bus.write_block_data(arduinoAddress, 0x02, [n, red, green, blue])
-	except:
-		errorMsg = sys.exc_info()[0]
-		errorHandler(5, errorMsg)
+	if available = False:
+		return 2
+	else:
+		try:
+			bus.write_block_data(arduinoAddress, 0x02, [n, red, green, blue])
+		except:
+			errorMsg = sys.exc_info()[0]
+			errorHandler(5, errorMsg)
 
 def show():
 	""" Send values for turning pixels on """
-	try:
-		bus.write_byte(arduinoAddress, 0x03)
-	except:
-		errorMsg = sys.exc_info()[0]
-		errorHandler(5, errorMsg)
+	if available = False:
+		return 2
+	else:
+		try:
+			bus.write_byte(arduinoAddress, 0x03)
+		except:
+			errorMsg = sys.exc_info()[0]
+			errorHandler(5, errorMsg)
     
 def blink(time, red, green, blue):
 	""" Flash all pixels with a colour """
-	try:
-		bus.write_block_data(arduinoAddress, 0x04, [red, green, blue, time])
-	except:
-		errorMsg = sys.exc_info()[0]
-		errorHandler(5, errorMsg)
+	if available = False:
+		return 2
+	else:
+		try:
+			bus.write_block_data(arduinoAddress, 0x04, [red, green, blue, time])
+		except:
+			errorMsg = sys.exc_info()[0]
+			errorHandler(5, errorMsg)
 
 def waitForSensor():
     while True:

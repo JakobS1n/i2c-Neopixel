@@ -66,9 +66,9 @@ def main():
     """ Wait for heartbeat from Arduino """
     while True:
 	try:
-        	if i2cPixel.greeting():
-            		print "Arduino is Online"
-            		break
+        if i2cPixel.greeting():
+        	print "Arduino is Online"
+       		break
 	except Exception:
 		pass
 
