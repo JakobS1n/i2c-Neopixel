@@ -15,7 +15,7 @@ def setBus(n):
 def greeting():
     """ Send heartbeat """
     bus.write_byte(arduinoAddress, 0x01)
-    
+
     """ Wait for response """
     try:
         response = bus.read_byte(arduinoAddress)
@@ -25,21 +25,31 @@ def greeting():
             returnMsg = False
     except:
         returnMsg = False
-    """ Return if heartbeat was received """
+    """ Return if heartbeat was received """        
     return returnMsg
 
 def setPixel(n, red, green, blue):
     """ Send values for switching a pixel on """
     bus.write_block_data(arduinoAddress, 0x02, [n, red, green, blue])
 
-def showPixel():
+def show():
     bus.write_byte(arduinoAddress, 0x03)
+    
+def blink(time, red, green, blue):
+    bus.write_block_data(arduinoAddress, 0x04, [red, green, blue, time])
 
 def waitForSensor():
-    
+
     while True:
         try:
             sensorData = bus.read_byte(arduinoAddress)
-            if sensorData = 0x02:
-                """ sjekk hvilken sensor """
-
+            if sensorData == 0x02:
+                print "Sensor 1 Triggered"
+                return 1
+                break;
+            if sensorData == 0x03:
+                print "Sensor 2 Triggered"
+                return 2
+                break;
+        except Exception:
+            pass
