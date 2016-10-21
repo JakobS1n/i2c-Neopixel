@@ -2,7 +2,7 @@
 #include <Adafruit_NeoPixel.h>
 
 #define PIN 6
-#define PIXELS 10 // Set this to the number of pixels in yout strip
+#define PIXELS 348 // Set this to the number of pixels in yout strip
 #define SLAVE_ADDRESS 0x04
 
 // Parameter 1 = number of pixels in strip
@@ -13,6 +13,10 @@
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXELS, PIN, NEO_GRB + NEO_KHZ800);
+
+// Timer
+unsigned long previousMillis = 0;
+long millisLockTime = 60000;
 
 // i2c Config
 int number = 0;
@@ -36,6 +40,12 @@ int pir2State = LOW;  // we start, assuming no motion detected
 int val2 = 0; // variable for reading the pin status
 boolean lockLow2 = true;
 boolean takeLowTime2;  
+
+boolean timeoutHappened = false;
+boolean timeoutEnabled = true;
+
+// pixelInt
+long pixelInt = 0;
 
 void setup() {
 
@@ -78,6 +88,7 @@ void setup() {
   delay(50);
 
   // Open i2c connection
+  Wire.setClock(400000L);
   Wire.begin(SLAVE_ADDRESS);
   
   Wire.onReceive(receiveData);
@@ -87,12 +98,27 @@ void setup() {
   Serial.println("Ready!");
   
   // Flash once Red
-  flashColor(204, 0, 0, 1100);
+  // flashColor(0, 5, 165, 70);
   
 }
 
 void loop() {
-     
+
+      if(!timeoutEnabled) {
+      unsigned long currentMillis = millis();
+
+      if (currentMillis-previousMillis >= millisLockTime) {
+          for(int j=0; j < PIXELS; j++) {
+            if (!timeoutHappened) {
+              fadeFromBlack(255, 0, 0, 30);
+              timeoutHappened = true;
+            }
+          }
+          strip.show();
+      } else {
+        timeoutHappened = false;
+      }
+     }
      // Sensor 1 //
      if(digitalRead(pir1) == HIGH){
        digitalWrite(13, HIGH);   //the led visualizes the sensors output pin state
@@ -173,6 +199,8 @@ void loop() {
 }
 
 void receiveData(int byteCount) {
+  previousMillis = millis();
+  
   digitalWrite(13, HIGH);
   int bytes[byteCount];
   int i = 0;
@@ -185,16 +213,18 @@ void receiveData(int byteCount) {
     i++;
   }
 
+
   switch (bytes[0]) {
     
     case 0x01:
       Serial.println("Life is discovered");
       number = 1;
-      flashColor(0, 204, 0, 1100);
+      flashColor(0, 204, 0, 30);
       break;
       
     case 0x02:
-      strip.setPixelColor(bytes[2], bytes[3], bytes[4], bytes[5]);
+      pixelInt = bytes[2] + bytes[3];
+      strip.setPixelColor(pixelInt, bytes[4], bytes[5], bytes[6]);
       break;
 
      case 0x03:
@@ -205,6 +235,19 @@ void receiveData(int byteCount) {
       flashColor(bytes[2], bytes[3], bytes[4], bytes[5]);
       break;
 
+     case 0x05:
+      timeoutEnabled = false;
+      break;
+
+    case 0x06:
+      strip.setBrightness(bytes[2]);
+      break;
+
+    case 0x07:
+      number = 42;
+      break;
+      
+      
     default:
       Serial.println("Nothing New");
       break;
@@ -215,6 +258,7 @@ void receiveData(int byteCount) {
 }
 
 void sendData() {
+  previousMillis = millis();
   Wire.write(number);
 }
 
@@ -222,8 +266,25 @@ void sendString(int Data) {
   Wire.write(Data);
 }
 
-void testCoid() {
-  flashColor(0, 204, 0, 1100);
+void fadeFromBlack(byte Red, byte Green, byte Blue, long n) {
+  byte Rstart=0;
+  byte Gstart=0;
+  byte Bstart=0;
+  byte Rend=Red;
+  byte Gend=Green;
+  byte Bend=Blue;
+ 
+  for(long i = 0; i < n; i++) // larger values of 'n' will give a smoother/slower transition.
+  {
+    byte Rnew = Rstart + (Rend - Rstart) * i / n;
+    byte Gnew = Gstart + (Gend - Gstart) * i / n;
+    byte Bnew = Bstart + (Bend - Bstart) * i / n;
+    // set pixel color here
+    for(int j=0; j < PIXELS; j++) {
+      strip.setPixelColor(j, strip.Color(Rnew, Gnew, Bnew));
+    }
+    strip.show();
+  }
 }
 
 void flashColor(byte Red, byte Green, byte Blue, long n) {
