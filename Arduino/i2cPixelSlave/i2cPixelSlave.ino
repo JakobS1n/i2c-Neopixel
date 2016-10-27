@@ -46,6 +46,7 @@ boolean timeoutEnabled = true;
 
 // pixelInt
 long pixelInt = 0;
+long brightness = 0;
 
 void setup() {
 
@@ -221,32 +222,32 @@ void receiveData(int byteCount) {
       number = 1;
       flashColor(0, 204, 0, 30);
       break;
-      
+
     case 0x02:
+      number = 42;
+      break;
+
+    case 0x03:
+      brightness = bytes[2] + bytes[3];
+      strip.setBrightness(brightness);
+      break;
+      
+    case 0x04:
       pixelInt = bytes[2] + bytes[3];
       strip.setPixelColor(pixelInt, bytes[4], bytes[5], bytes[6]);
       break;
 
-     case 0x03:
-      strip.show();
-      break;
-
-     case 0x04:
+    case 0x05:
       flashColor(bytes[2], bytes[3], bytes[4], bytes[5]);
       break;
 
-     case 0x05:
-      timeoutEnabled = false;
-      break;
-
     case 0x06:
-      strip.setBrightness(bytes[2]);
+      strip.show();
       break;
 
     case 0x07:
-      number = 42;
+      timeoutEnabled = false;
       break;
-      
       
     default:
       Serial.println("Nothing New");
@@ -267,36 +268,26 @@ void sendString(int Data) {
 }
 
 void fadeFromBlack(byte Red, byte Green, byte Blue, long n) {
-  byte Rstart=0;
-  byte Gstart=0;
-  byte Bstart=0;
-  byte Rend=Red;
-  byte Gend=Green;
-  byte Bend=Blue;
  
-  for(long i = 0; i < n; i++) // larger values of 'n' will give a smoother/slower transition.
+  for(long i = 0; i < n; i++)
   {
-    byte Rnew = Rstart + (Rend - Rstart) * i / n;
-    byte Gnew = Gstart + (Gend - Gstart) * i / n;
-    byte Bnew = Bstart + (Bend - Bstart) * i / n;
+    byte Rnew = 0 + (Red - 0) * i / n;
+    byte Gnew = 0 + (Green - 0) * i / n;
+    byte Bnew = 0 + (Blue - 0) * i / n;
     // set pixel color here
     for(int j=0; j < PIXELS; j++) {
       strip.setPixelColor(j, strip.Color(Rnew, Gnew, Bnew));
     }
     strip.show();
   }
+  
 }
 
 void flashColor(byte Red, byte Green, byte Blue, long n) {
 
-  byte Rstart=0;
-  byte Gstart=0;
-  byte Bstart=0;
-  byte Rend=Red;
-  byte Gend=Green;
-  byte Bend=Blue;
+  byte Rstart=0;byte Gstart=0;byte Bstart=0;byte Rend=Red;byte Gend=Green;byte Bend=Blue;
  
-  for(long i = 0; i < n; i++) // larger values of 'n' will give a smoother/slower transition.
+  for(long i = 0; i < n; i++)
   {
     byte Rnew = Rstart + (Rend - Rstart) * i / n;
     byte Gnew = Gstart + (Gend - Gstart) * i / n;
@@ -308,14 +299,9 @@ void flashColor(byte Red, byte Green, byte Blue, long n) {
     strip.show();
   }
 
-  Rstart=Red;
-  Gstart=Green;
-  Bstart=Blue;
-  Rend=0;
-  Gend=0;
-  Bend=0;
+  Rstart=Red;Gstart=Green;Bstart=Blue;Rend=0;Gend=0;Bend=0;
 
-  for(long i = 0; i < n; i++) // larger values of 'n' will give a smoother/slower transition.
+  for(long i = 0; i < n; i++)
   {
     byte Rnew = Rstart + (Rend - Rstart) * i / n;
     byte Gnew = Gstart + (Gend - Gstart) * i / n;

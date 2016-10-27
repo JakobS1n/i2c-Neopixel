@@ -31,32 +31,43 @@ lockdown = False
 def version():
     print "i2cPixel is Version 1.0.0"
 
+def lockBus():
+    lockdown = True
+    
+def unlockBus():
+    lockdown = False
+
 def available():
     global lockdown
-    return lockdown
+    if lockdown == True:
+        return False
+    elif lockdown == False:
+        return True
+    else:
+        return False
 
 def setAddress(address):
     global arduinoAddress
     arduinoAddress = address
 
 def setBus(n):
-    if available == False:
+    if not available:
         return 2
     else:
-        lockdown = False
+        lockBus()
         global bus
         try:
             bus = smbus.SMBus(n)
         except:
             errorMsg = sys.exc_info()[0]
             errorHandler(5, errorMsg)
-    lockdown = True
+    unlockBus()
     
 def greeting():
-    if available == False:
+    if not available:
         return 2
     else:
-        lockdown = False
+        lockBus()
         try:
             """ Send heartbeat """
             bus.write_byte(arduinoAddress, 0x01)
@@ -79,45 +90,37 @@ def greeting():
         except:
             errorMsg = sys.exc_info()[0]
             errorHandler(5, errorMsg)
-    lockdown = True
+    unlockBus()
 
 def ping():
-    # Send 0x07 vil faa tilbake 42 hvis live
+    # Send 0x02 vil faa tilbake 42 hvis live
     return False
 
 def setBrightness(intensity):
-    if available == False:
+    if not available:
         return 2
     else:
-        lockdown = False
+        lockBus()
         try:
-            bus.write_block_data(arduinoAddress, 0x06, [intensity])
+            if intensity > 255:
+                n1 = 255
+                n2 = n - 255
+            else:
+                n1 = 0
+                n2 = intensity
+                
+            bus.write_block_data(arduinoAddress, 0x03, [n1, n2])
         except:
             errorMsg = sys.exec_info()[0]
             errorHandler(5, errorMsg)
-    lockdown = True
-
-def disableTimeout():
-    if available == False:
-        return 2
-    else:
-        lockdown = False
-        try:
-            bus.write_byte(arduinoAddress, 0x05)
-        except:
-            errorMsg = sys.exec_info()[0]
-            errorHandler(5, errorMsg)
-    lockdown = True
-
-def blink(n, Red, Green, Blue):
-    bus.write_block_data(arduinoAddress, 0x04, [Red, Green, Blue, n])
-            
+    unlockBus()
+    
 def setPixel(n, red, green, blue):
     """ Send values for changing pixel values """
-    if available == False:
+    if not available:
         return 2
     else:
-        lockdown = False
+        lockBus()
         try:
             if n > 255:
                 n1 = 255
@@ -125,38 +128,50 @@ def setPixel(n, red, green, blue):
             else:
                 n1 = 0
                 n2 = n
-            #print("{", n1, n2, "}")
-            bus.write_block_data(arduinoAddress, 0x02, [n1, n2, red, green, blue])
+            bus.write_block_data(arduinoAddress, 0x04, [n1, n2, red, green, blue])
         except:
             errorMsg = sys.exc_info()[0]
             errorHandler(5, errorMsg)
-    lockdown = True
+    unlockBus()
 
-def show():
-    """ Send values for turning pixels on """
-    if available == False:
-        return 2
-    else:
-        lockdown = False
-        try:
-            bus.write_byte(arduinoAddress, 0x03)
-        except:
-            errorMsg = sys.exc_info()[0]
-            errorHandler(5, errorMsg)
-    lockdown = True
-    
 def blink(time, red, green, blue):
     """ Flash all pixels with a colour """
-    if available == False:
+    if not available:
         return 2
     else:
-        lockdown = False
+        lockBus()
         try:
-            bus.write_block_data(arduinoAddress, 0x04, [red, green, blue, time])
+            bus.write_block_data(arduinoAddress, 0x05, [red, green, blue, time])
         except:
             errorMsg = sys.exc_info()[0]
             errorHandler(5, errorMsg)
-    lockdown = True
+    unlockBus()
+    
+            
+def show():
+    """ Send values for turning pixels on """
+    if not available:
+        return 2
+    else:
+        lockBus()
+        try:
+            bus.write_byte(arduinoAddress, 0x06)
+        except:
+            errorMsg = sys.exc_info()[0]
+            errorHandler(5, errorMsg)
+    unlockBus()
+    
+def disableTimeout():
+    if not available:
+        return 2
+    else:
+        lockBus()
+        try:
+            bus.write_byte(arduinoAddress, 0x07)
+        except:
+            errorMsg = sys.exec_info()[0]
+            errorHandler(5, errorMsg)
+    unlockBus()
 
 def waitForSensor():
     while True:
@@ -172,3 +187,9 @@ def waitForSensor():
                 break;
         except Exception:
             pass
+
+     
+def HEX(value):
+    value = value.lstrip('#')
+    lv = len(value)
+    return tuple(int(value[i:i+lv/3], 16) for i in range(0, lv, lv/3))
